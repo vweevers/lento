@@ -1,0 +1,39 @@
+{
+  "name": "lento",
+  "version": "0.0.1",
+  "description": "Streaming client for Presto HTTP protocol v1",
+  "license": "MIT",
+  "author": "Vincent Weevers",
+  "main": "lento.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "aggregate-error": "~1.0.0",
+    "backo": "~1.1.0",
+    "deep-set": "~1.0.1",
+    "ms": "~2.1.1",
+    "pump": "~3.0.0",
+    "readable-stream": "~2.3.3",
+    "simple-concat": "~1.0.0",
+    "sql-escape-string": "~1.1.0",
+    "through2": "~2.0.3"
+  },
+  "devDependencies": {
+    "nock": "~9.1.6",
+    "tape": "~4.8.0"
+  },
+  "keywords": [
+    "database",
+    "hive",
+    "presto",
+    "prestodb"
+  ],
+  "engines": {
+    "node": ">=6.8.0",
+    "npm": ">=2.0.0"
+  },
+  "repository": "vweevers/lento",
+  "bugs": "https://github.com/vweevers/lento/issues",
+  "homepage": "https://github.com/vweevers/lento"
+}
