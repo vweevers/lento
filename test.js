@@ -130,6 +130,40 @@ test('page stream', function (t) {
   })
 })
 
+test('follows nextUri', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(200, { id: 'q1', nextUri: 'http://localhost:8080/two' })
+    .get('/two')
+    // lento does not change the initial protocol (in this case, http)
+    .reply(200, { nextUri: 'https://other-host:8081/three' })
+
+  nock('http://other-host:8081')
+    .get('/three')
+    .reply(200, {})
+
+  const stream = lento().createRowStream('select 1')
+  const requests = []
+
+  stream.on('request', (requestOptions) => {
+    requests.push({ port: requestOptions.port, path: requestOptions.path })
+  })
+
+  stream.on('data', function () {
+    t.fail('not expecting data')
+  })
+
+  stream.on('end', function () {
+    t.same(requests, [
+      { port: undefined, path: '/v1/statement' },
+      { port: '8080', path: '/two' },
+      { port: '8081', path: '/three' }
+    ])
+  })
+})
+
 test('row stream: http error', function (t) {
   t.plan(1)
 
