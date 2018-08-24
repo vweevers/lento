@@ -6,12 +6,13 @@ const lento = require('.')
 const noop = () => {}
 const VERSION = require('./package.json').version
 
-test('sets headers', function (t) {
-  t.plan(6)
+test('sets body and headers', function (t) {
+  t.plan(7)
 
   nock('http://localhost:8080')
     .post('/v1/statement')
     .reply(function (uri, requestBody, cb) {
+      t.is(requestBody, 'select 1')
       t.is(this.req.headers['user-agent'], `lento ${VERSION}`)
       t.is(this.req.headers['x-presto-source'], 'lento')
       t.is(this.req.headers['connection'], 'keep-alive')
@@ -20,17 +21,61 @@ test('sets headers', function (t) {
 
       cb(null, [200, {
         id: 'q1',
-        columns: [
-          { name: 'a' },
-          { name: 'b' }
-        ],
-        data: [ [0, 0], [1, 1] ]
+        columns: [{ name: 'a' }],
+        data: [[1]]
       }])
     })
 
-  lento().query('select "foo"', (err) => {
+  lento().query('select 1', (err) => {
     t.ifError(err, 'no query error')
   })
+})
+
+test('Buffer query', function (t) {
+  t.plan(2)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(function (uri, requestBody, cb) {
+      t.is(requestBody, 'select 2')
+
+      cb(null, [200, {
+        id: 'q1',
+        columns: [{ name: 'a' }],
+        data: [[1]]
+      }])
+    })
+
+  lento().query(Buffer.from('select 2'), (err) => {
+    t.ifError(err, 'no query error')
+  })
+})
+
+test('rejects query that is of wrong type or empty', function (t) {
+  t.plan(6)
+
+  const client = lento()
+
+  try {
+    client.query()
+  } catch (err) {
+    t.is(err.name, 'TypeError')
+    t.is(err.message, 'First argument "sql" must be a string or Buffer')
+  }
+
+  try {
+    client.query('')
+  } catch (err) {
+    t.is(err.name, 'Error')
+    t.is(err.message, 'First argument "sql" must not be empty')
+  }
+
+  try {
+    client.query(Buffer.alloc(0))
+  } catch (err) {
+    t.is(err.name, 'Error')
+    t.is(err.message, 'First argument "sql" must not be empty')
+  }
 })
 
 test('row stream', function (t) {
@@ -47,7 +92,7 @@ test('row stream', function (t) {
       data: [ [0, 0], [1, 1] ]
     })
 
-  const stream = lento().createRowStream()
+  const stream = lento().createRowStream('select 1')
   const emitted = []
 
   stream.on('data', function (row) {
@@ -73,7 +118,7 @@ test('page stream', function (t) {
       data: [ [0, 0], [1, 1] ]
     })
 
-  const stream = lento().createPageStream()
+  const stream = lento().createPageStream('select 1')
   const emitted = []
 
   stream.on('data', function (rows) {
@@ -100,7 +145,7 @@ test('row stream: http error', function (t) {
     })
 
   lento()
-    .createRowStream()
+    .createRowStream('select 1')
     .on('data', function (row) {
       t.fail('not expecting data')
     })
