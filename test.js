@@ -153,3 +153,29 @@ test('row stream: http error', function (t) {
       t.is(err && err.message, 'http 500')
     })
 })
+
+test('row stream: presto error', function (t) {
+  t.plan(4)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(200, {
+      error: {
+        message: 'Query exceeded maximum time limit of 1.00ms',
+        errorName: 'EXCEEDED_TIME_LIMIT',
+        errorType: 'INSUFFICIENT_RESOURCES'
+      }
+    })
+
+  lento()
+    .createRowStream('select 1')
+    .on('data', function (row) {
+      t.fail('not expecting data')
+    })
+    .on('error', function (err) {
+      t.is(err.message, 'EXCEEDED_TIME_LIMIT: Query exceeded maximum time limit of 1.00ms')
+      t.is(err.code, 'EXCEEDED_TIME_LIMIT')
+      t.is(err.type, 'INSUFFICIENT_RESOURCES')
+      t.is(err.name, 'PrestoError')
+    })
+})
