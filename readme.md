@@ -226,7 +226,7 @@ See [Presto Properties](https://prestodb.io/docs/current/admin/properties.html) 
 Errors are enriched with a `code` and `type` (string) and optionally `info`. For example:
 
 ```js
-client.setTimeLimit('1ms', (err) => {
+client.setTimeout('1ms', (err) => {
   if (err) return console.error(err.code, err)
 
   client.query('SELECT * FROM big_table', (err) => {
