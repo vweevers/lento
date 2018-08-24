@@ -181,7 +181,7 @@ test('row stream: presto error', function (t) {
 })
 
 test('no cancelation after upstream is finished', function (t) {
-  t.plan(2)
+  t.plan(3)
 
   nock('http://localhost:8080')
     .post('/v1/statement')
@@ -198,10 +198,10 @@ test('no cancelation after upstream is finished', function (t) {
     t.fail('should not cancel')
   })
 
-  // stream.on('close', () => {
-  //   order.push('close')
-  //   t.same(order, ['data', 'close'])
-  // })
+  stream.on('close', () => {
+    order.push('close')
+    t.same(order, ['data', 'close'])
+  })
 
   stream.on('data', (row) => {
     order.push('data')
