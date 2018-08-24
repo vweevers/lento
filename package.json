@@ -13,6 +13,7 @@
     "backo": "~1.1.0",
     "deep-set": "~1.0.1",
     "ms": "~2.1.1",
+    "once": "~1.4.0",
     "pump": "~3.0.0",
     "readable-stream": "~2.3.3",
     "simple-concat": "~1.0.0",

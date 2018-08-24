@@ -14,7 +14,7 @@
 - Uses [Presto HTTP protocol v1](https://github.com/prestodb/presto/wiki/HTTP-Protocol)
 - Keep-alive HTTP connections
 - Supports Gzip and Deflate content encoding
-- Retries HTTP 503.
+- Retries [HTTP 503 and other failures](#builtin-retry).
 
 ## example
 
@@ -76,7 +76,7 @@ You can specify a [catalog](https://prestodb.io/docs/current/overview/concepts.h
 Control delays and retries:
 
 - `pollInterval`: number (milliseconds) or string with unit (e.g. `1s`, `500ms`). How long to wait for server-side state changes, before sending another HTTP request. Default is 1 second.
-- `maxRetries`: number of retries if Presto responds with HTTP 503. Default is 10 (with delays between 50 and 100 ms).
+- `maxRetries`: number of retries if Presto responds with [HTTP 503 or other failures](#builtin-retry). Default is 10.
 
 <a name="createpagestream"></a>
 ### `createPageStream(sql[, options])`
@@ -236,6 +236,10 @@ client.setTimeout('1ms', (err) => {
   })
 })
 ```
+
+### builtin retry
+
+Per the specification of Presto HTTP Protocol v1, `lento` will retry an HTTP request with exponential delay if Presto responds with 503. In addition, `lento` retries if the TCP connection is refused.
 
 ## install
 

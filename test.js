@@ -154,7 +154,7 @@ test('row stream: http error', function (t) {
     })
 })
 
-test('retries http 503', function (t) {
+test('retries HTTP 503', function (t) {
   t.plan(1)
 
   nock('http://localhost:8080')
@@ -170,7 +170,7 @@ test('retries http 503', function (t) {
     })
 })
 
-test('does not retry if maxRetries is 0', function (t) {
+test('does not retry HTTP 503 if maxRetries is 0', function (t) {
   t.plan(1)
 
   nock('http://localhost:8080')
@@ -182,6 +182,36 @@ test('does not retry if maxRetries is 0', function (t) {
     .on('data', noop)
     .on('error', function (err) {
       t.is(err && err.message, 'http 503')
+    })
+})
+
+test('retries ECONNREFUSED', function (t) {
+  t.plan(2)
+
+  let retries = 0
+
+  lento({ maxRetries: 1, port: 9999 })
+    .on('retry', () => { retries++ })
+    .createRowStream('select 1')
+    .on('data', noop)
+    .on('error', function (err) {
+      t.is(err.code, 'ECONNREFUSED')
+      t.is(retries, 1)
+    })
+})
+
+test('does not retry ECONNREFUSED if maxRetries is 0', function (t) {
+  t.plan(2)
+
+  let retries = 0
+
+  lento({ maxRetries: 0, port: 9999 })
+    .on('retry', () => { retries++ })
+    .createRowStream('select 1')
+    .on('data', noop)
+    .on('error', function (err) {
+      t.is(err.code, 'ECONNREFUSED')
+      t.is(retries, 0)
     })
 })
 
