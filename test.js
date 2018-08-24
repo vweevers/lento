@@ -154,6 +154,37 @@ test('row stream: http error', function (t) {
     })
 })
 
+test('retries http 503', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .times(3)
+    .reply(503)
+
+  lento({ maxRetries: 2 })
+    .createRowStream('select 1')
+    .on('data', noop)
+    .on('error', function (err) {
+      t.is(err && err.message, 'http 503')
+    })
+})
+
+test('does not retry if maxRetries is 0', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(503)
+
+  lento({ maxRetries: 0 })
+    .createRowStream('select 1')
+    .on('data', noop)
+    .on('error', function (err) {
+      t.is(err && err.message, 'http 503')
+    })
+})
+
 test('row stream: presto error', function (t) {
   t.plan(4)
 
