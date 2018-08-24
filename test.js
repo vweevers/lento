@@ -7,12 +7,16 @@ const noop = () => {}
 const VERSION = require('./package.json').version
 
 test('sets headers', function (t) {
-  t.plan(2)
+  t.plan(6)
 
   nock('http://localhost:8080')
     .post('/v1/statement')
     .reply(function (uri, requestBody, cb) {
       t.is(this.req.headers['user-agent'], `lento ${VERSION}`)
+      t.is(this.req.headers['x-presto-source'], 'lento')
+      t.is(this.req.headers['connection'], 'keep-alive')
+      t.is(this.req.headers['accept-encoding'],  'gzip, deflate, identity')
+      t.is(this.req.headers['accept'], 'application/json')
 
       cb(null, [200, {
         id: 'q1',
