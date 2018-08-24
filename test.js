@@ -3,6 +3,31 @@
 const test = require('tape')
 const nock = require('nock')
 const lento = require('.')
+const noop = () => {}
+const VERSION = require('./package.json').version
+
+test('sets headers', function (t) {
+  t.plan(2)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(function (uri, requestBody, cb) {
+      t.is(this.req.headers['user-agent'], `lento ${VERSION}`)
+
+      cb(null, [200, {
+        id: 'q1',
+        columns: [
+          { name: 'a' },
+          { name: 'b' }
+        ],
+        data: [ [0, 0], [1, 1] ]
+      }])
+    })
+
+  lento().query('select "foo"', (err) => {
+    t.ifError(err, 'no query error')
+  })
+})
 
 test('row stream', function (t) {
   t.plan(1)
