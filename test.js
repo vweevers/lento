@@ -179,3 +179,37 @@ test('row stream: presto error', function (t) {
       t.is(err.name, 'PrestoError')
     })
 })
+
+test('no cancelation after upstream is finished', function (t) {
+  t.plan(2)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(200, {
+      id: 'q1',
+      columns: [{ name: 'a' }],
+      data: [[1], [2]]
+    })
+
+  const stream = lento().createRowStream('select 1', { pageSize: 1 })
+  const order = []
+
+  stream.on('cancel', () => {
+    t.fail('should not cancel')
+  })
+
+  // stream.on('close', () => {
+  //   order.push('close')
+  //   t.same(order, ['data', 'close'])
+  // })
+
+  stream.on('data', (row) => {
+    order.push('data')
+
+    t.is(stream._upstreamFinished, true, 'upstream finished')
+    t.same(row, { a: 1 }, 'data ok')
+
+    stream.pause()
+    stream.destroy()
+  })
+})
