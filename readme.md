@@ -2,9 +2,21 @@
 
 **Streaming Node.js client for [Presto](https://prestodb.io/), the "Distributed SQL Query Engine for Big Data".**
 
-[![npm status](http://img.shields.io/npm/v/lento.svg?style=flat-square)](https://www.npmjs.org/package/lento) [![node](https://img.shields.io/node/v/lento.svg?style=flat-square)](https://www.npmjs.org/package/lento) [![Travis build status](https://img.shields.io/travis/vweevers/lento.svg?style=flat-square&label=travis)](http://travis-ci.org/vweevers/lento) [![AppVeyor build status](https://img.shields.io/appveyor/ci/vweevers/lento.svg?style=flat-square&label=appveyor)](https://ci.appveyor.com/project/vweevers/lento) [![Dependency status](https://img.shields.io/david/vweevers/lento.svg?style=flat-square)](https://david-dm.org/vweevers/lento)
+[![npm status](http://img.shields.io/npm/v/lento.svg)](https://www.npmjs.org/package/lento) [![node](https://img.shields.io/node/v/lento.svg)](https://www.npmjs.org/package/lento) [![Travis build status](https://img.shields.io/travis/vweevers/lento.svg?label=travis)](http://travis-ci.org/vweevers/lento) [![AppVeyor build status](https://img.shields.io/appveyor/ci/vweevers/lento.svg?label=appveyor)](https://ci.appveyor.com/project/vweevers/lento) [![Dependency status](https://img.shields.io/david/vweevers/lento.svg)](https://david-dm.org/vweevers/lento)
 
-## features
+## Table of Contents
+
+<details><summary>Click to expand</summary>
+
+- [Features](#features)
+- [Example](#example)
+- [API](#api)
+- [Install](#install)
+- [License](#license)
+
+</details>
+
+## Features
 
 - Stream rows or pages of rows
 - Cancelation through [`stream.destroy()`](https://nodejs.org/api/stream.html#stream_readable_destroy_error)
@@ -16,7 +28,7 @@
 - Supports Gzip and Deflate content encoding
 - Retries [HTTP 503 and other failures](#builtin-retry).
 
-## example
+## Example
 
 Convert a Presto table to CSV:
 
@@ -47,8 +59,8 @@ If the destination streams close or error, the source stream is destroyed (court
 
 - [`lento([options])`](#lentooptions)
 - [`createPageStream(sql[, options])`](#createpagestreamsql-options)
-	- [cancelation](#cancelation)
-	- [events](#events)
+	- [Cancelation](#cancelation)
+	- [Events](#events)
 - [`createRowStream(sql[, options])`](#createrowstreamsql-options)
 - [`query(sql[, options], callback)`](#querysql-options-callback)
 - [`setTimeout(duration[, options], callback)`](#settimeoutduration-options-callback)
@@ -56,7 +68,9 @@ If the destination streams close or error, the source stream is destroyed (court
 - [`set(key, value[, options], callback)`](#setkey-value-options-callback)
 - [`reset(key[, options], callback)`](#resetkey-options-callback)
 - [`session([options, ]callback)`](#sessionoptions-callback)
-- [errors](#errors)
+- [Errors](#errors)
+- [Builtin Retry](#builtin-retry)
+- [Debug](#debug)
 
 ### `lento([options])`
 
@@ -112,11 +126,11 @@ If you care more about throughput, you can opt to increase `highWaterMark`. This
 
 For tuning the Presto side of things, use [`set()`](#set).
 
-#### cancelation
+#### Cancelation
 
 [Destroying the stream](https://nodejs.org/api/stream.html#stream_readable_destroy_error) will cancel the query with a `DELETE` request to Presto, unless no requests were made yet. If the initial request is in flight the stream will wait for a response, which contains the query id that can then be cancelled. If cancelation fails the stream will emit an `error` (open an issue if you think it shouldn't). Regardless of success, the streams emits `close` as the last event.
 
-#### events
+#### Events
 
 Besides the usual [Node.js stream events](https://nodejs.org/api/stream.html#stream_class_stream_readable), the stream emits:
 
@@ -223,13 +237,13 @@ Converts the result of `SHOW SESSION` into a tree, coerces boolean and integer v
 
 See [Presto Properties](https://prestodb.io/docs/current/admin/properties.html) for a detailed description of (some of) the properties.
 
-### errors
+### Errors
 
 Errors are enriched with a `code` and `type` (string) and optionally `info`. For example:
 
 ```js
 client.setTimeout('1ms', (err) => {
-  if (err) return console.error(err.code, err)
+  if (err) throw err
 
   client.query('SELECT * FROM big_table', (err) => {
     console.error(err.message) // 'EXCEEDED_TIME_LIMIT: Query exceeded maximum time limit of 1.00ms'
@@ -239,7 +253,7 @@ client.setTimeout('1ms', (err) => {
 })
 ```
 
-### builtin retry
+### Builtin Retry
 
 Per the specification of Presto HTTP Protocol v1, `lento` will sleep for 50-100ms and retry an HTTP request if Presto responds with 503. In addition, `lento` retries if the TCP connection is refused.
 
@@ -247,11 +261,11 @@ Lastly, a query (consisting of one or more HTTP requests) will be retried if Pre
 
 I wish retries could be handled at a higher level, but as it stands, `lento` is both a low-level HTTP client and a streaming client, so retries have to be handled here. This may change in the future.
 
-### debug
+### Debug
 
 Enable debug output with `DEBUG=lento`. Mostly logs HTTP requests and retries, no usernames, SQL or other potentially sensitive data. Beware, it can log thousands of lines per query.
 
-## install
+## Install
 
 With [npm](https://npmjs.org) do:
 
@@ -259,9 +273,9 @@ With [npm](https://npmjs.org) do:
 npm install lento
 ```
 
-## license
+## License
 
-[MIT](http://opensource.org/licenses/MIT) © Vincent Weevers
+[MIT](LICENSE) © 2018-present Vincent Weevers
 
 ---
 
