@@ -29,8 +29,8 @@
     "through2": "~2.0.3"
   },
   "devDependencies": {
-    "nock": "~9.1.6",
-    "tape": "~4.8.0"
+    "nock": "~9.6.1",
+    "tape": "~4.9.1"
   },
   "keywords": [
     "database",
