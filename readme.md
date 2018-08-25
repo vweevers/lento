@@ -247,6 +247,10 @@ Lastly, a query (consisting of one or more HTTP requests) will be retried if Pre
 
 I wish retries could be handled at a higher level, but as it stands, `lento` is both a low-level HTTP client and a streaming client, so retries have to be handled here. This may change in the future.
 
+### debug
+
+Enable debug output with `DEBUG=lento`. Mostly logs HTTP requests and retries, no usernames, SQL or other potentially sensitive data. Beware, it can log thousands of lines per query.
+
 ## install
 
 With [npm](https://npmjs.org) do:
