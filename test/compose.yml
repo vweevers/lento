@@ -1,0 +1,21 @@
+version: '3.4'
+
+services:
+  test:
+    build:
+      context: docker
+    environment:
+      - NODE_ENV=test
+      - DEBUG=*
+    command: >
+      node test
+      --presto.hostname=presto-coordinator
+      --presto.port=8080
+      --presto.user=test
+      --presto.schema=test
+      --presto.catalog=hive
+    volumes:
+      - ..:/home/node/app/node_modules/lento
+      - ./integration:/home/node/app/test
+    depends_on:
+      - presto-coordinator

@@ -6,8 +6,15 @@
   "author": "Vincent Weevers",
   "main": "lento.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "test-docker": "npm run test-docker:run && npm run test-docker:down",
+    "test-docker:run": "docker-compose run --rm --service-ports test",
+    "test-docker:down": "docker-compose down -v"
   },
+  "files": [
+    "lib",
+    "lento.js"
+  ],
   "dependencies": {
     "aggregate-error": "~1.0.0",
     "backo": "~1.1.0",
@@ -32,8 +39,7 @@
     "prestodb"
   ],
   "engines": {
-    "node": ">=6.8.0",
-    "npm": ">=2.0.0"
+    "node": ">=6.8.0"
   },
   "repository": "vweevers/lento",
   "bugs": "https://github.com/vweevers/lento/issues",
