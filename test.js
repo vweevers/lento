@@ -158,8 +158,8 @@ test('follows nextUri', function (t) {
   stream.on('end', function () {
     t.same(requests, [
       { port: undefined, path: '/v1/statement' },
-      { port: '8080', path: '/two' },
-      { port: '8081', path: '/three' }
+      { port: 8080, path: '/two' },
+      { port: 8081, path: '/three' }
     ])
   })
 })
