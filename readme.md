@@ -114,16 +114,18 @@ For tuning the Presto side of things, use [`set()`](#set).
 
 #### cancelation
 
-[Destroying the stream](https://nodejs.org/api/stream.html#stream_readable_destroy_error) will cancel the query with a `DELETE` request to Presto, unless no requests were made yet. If the initial request is in flight the stream will wait for a response, which contains the query id that can then be cancelled. If cancelation fails the stream will emit an `error` (open an issue if you think it shouldn't).
+[Destroying the stream](https://nodejs.org/api/stream.html#stream_readable_destroy_error) will cancel the query with a `DELETE` request to Presto, unless no requests were made yet. If the initial request is in flight the stream will wait for a response, which contains the query id that can then be cancelled. If cancelation fails the stream will emit an `error` (open an issue if you think it shouldn't). Regardless of success, the streams emits `close` as the last event.
 
 #### events
 
 Besides the usual [Node.js stream events](https://nodejs.org/api/stream.html#stream_class_stream_readable), the stream emits:
 
-- `id`: emitted once, with query id once known
-- `info`: emitted once, with fully qualified info URL
-- `columns`: emitted once, with raw data as returned by Presto
+- `id`: emitted with query id once known
+- `info`: emitted with fully qualified info URL
+- `columns`: emitted with an array of column metadata as returned by Presto
 - `stats`: emitted for each HTTP response, with raw data.
+
+**Note** The `id`, `info` and `columns` events may be emitted more than once due to retries. Subsequent `stats` events pertain to that retried query as well.
 
 <a name="createrowstream"></a>
 ### `createRowStream(sql[, options])`
@@ -239,7 +241,11 @@ client.setTimeout('1ms', (err) => {
 
 ### builtin retry
 
-Per the specification of Presto HTTP Protocol v1, `lento` will retry an HTTP request with exponential delay if Presto responds with 503. In addition, `lento` retries if the TCP connection is refused.
+Per the specification of Presto HTTP Protocol v1, `lento` will sleep for 50-100ms and retry an HTTP request if Presto responds with 503. In addition, `lento` retries if the TCP connection is refused.
+
+Lastly, a query (consisting of one or more HTTP requests) will be retried if Presto returns an error like `SERVER_STARTING_UP` or `HIVE_METASTORE_ERROR`, but only if no data was received yet, to avoid emitting duplicates.
+
+I wish retries could be handled at a higher level, but as it stands, `lento` is both a low-level HTTP client and a streaming client, so retries have to be handled here. This may change in the future.
 
 ## install
 

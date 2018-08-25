@@ -164,6 +164,184 @@ test('follows nextUri', function (t) {
   })
 })
 
+test('retries query after presto error and having followed a nextUri', function (t) {
+  t.plan(3)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(200, { id: 'q1', nextUri: 'http://localhost:8080/q1' })
+    .get('/q1')
+    .reply(200, {
+      error: {
+        message: 'not relevant',
+        errorName: 'SERVER_STARTING_UP',
+        errorType: 'not relevant'
+      }
+    })
+    .post('/v1/statement')
+    .reply(200, { id: 'q2', nextUri: 'http://localhost:8080/q2' })
+    .get('/q2')
+    .reply(200, {
+      columns: [{ name: 'a' }],
+      data: [[0], [1]]
+    })
+
+  const client = lento()
+  const stream = client.createPageStream('select 1')
+  const requests = []
+  const ids = []
+
+  client.on('_request', (requestOptions) => {
+    // Clone because client reuses requestOptions object
+    const clone = JSON.parse(JSON.stringify(requestOptions))
+
+    // TODO: where do these come from?
+    delete clone.host
+    delete clone.proto
+
+    requests.push(clone)
+  })
+
+  stream.on('id', (queryId) => {
+    ids.push(queryId)
+  })
+
+  stream.on('data', (page) => {
+    t.same(page, [{ a: 0 }, { a: 1 }])
+  })
+
+  const headers = {
+    Accept: 'application/json',
+    'X-Presto-Source': 'lento',
+    'User-Agent': `lento ${VERSION}`,
+    Connection: 'keep-alive',
+    'Accept-Encoding': 'gzip, deflate, identity'
+  }
+
+  stream.on('end', function () {
+    t.same(ids, ['q1', 'q2'])
+    t.same(requests, [{
+      protocol: 'http:',
+      hostname: 'localhost',
+      port: 8080,
+      path: '/v1/statement',
+      method: 'POST',
+      body: 'select 1',
+      json: true,
+      expectStatusCode: 200,
+      headers: headers
+    }, {
+      protocol: 'http:',
+      hostname: 'localhost',
+      port: 8080,
+      path: '/q1',
+      method: 'GET',
+      json: true,
+      expectStatusCode: 200,
+      headers: headers
+    }, {
+      protocol: 'http:',
+      hostname: 'localhost',
+      port: 8080,
+      path: '/v1/statement',
+      method: 'POST',
+      body: 'select 1',
+      json: true,
+      expectStatusCode: 200,
+      headers: headers
+    }, {
+      protocol: 'http:',
+      hostname: 'localhost',
+      port: 8080,
+      path: '/q2',
+      method: 'GET',
+      json: true,
+      expectStatusCode: 200,
+      headers: headers
+    }])
+  })
+})
+
+test('does not retry query after presto error and nextUri if data was received', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(200, {
+      id: 'q1',
+      nextUri: 'http://localhost:8080/q1',
+      columns: [{ name: 'a' }],
+      data: [[0], [1]]
+    })
+    .get('/q1')
+    .reply(200, {
+      error: {
+        message: 'not relevant',
+        errorName: 'SERVER_STARTING_UP',
+        errorType: 'not relevant'
+      }
+    })
+
+  const client = lento()
+  const stream = client.createPageStream('select 1')
+
+  stream.on('data', noop).on('error', (err) => {
+    t.is(err.code, 'SERVER_STARTING_UP')
+  })
+})
+
+test('does not retry query after presto error and nextUri if maxRetries is 0', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(200, { id: 'q1', nextUri: 'http://localhost:8080/q1' })
+    .get('/q1')
+    .reply(200, {
+      error: {
+        message: 'not relevant',
+        errorName: 'SERVER_STARTING_UP',
+        errorType: 'not relevant'
+      }
+    })
+
+  const client = lento({ maxRetries: 0 })
+  const stream = client.createPageStream('select 1')
+
+  stream.on('data', (page) => {
+    t.fail('not expecting data')
+  })
+
+  stream.on('error', (err) => {
+    t.is(err.code, 'SERVER_STARTING_UP')
+  })
+})
+
+test('does not retry query after presto error if maxRetries is 0', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(200, {
+      error: {
+        message: 'not relevant',
+        errorName: 'SERVER_STARTING_UP',
+        errorType: 'not relevant'
+      }
+    })
+
+  const client = lento({ maxRetries: 0 })
+  const stream = client.createPageStream('select 1')
+
+  stream.on('data', (page) => {
+    t.fail('not expecting data')
+  })
+
+  stream.on('error', (err) => {
+    t.is(err.code, 'SERVER_STARTING_UP')
+  })
+})
+
 test('row stream: http error', function (t) {
   t.plan(1)
 
