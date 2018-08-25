@@ -291,9 +291,14 @@ test('does not retry query after presto error and nextUri if data was received',
   const client = lento()
   const stream = client.createPageStream('select 1')
 
-  stream.on('data', noop).on('error', (err) => {
-    t.is(err.code, 'SERVER_STARTING_UP')
-  })
+  stream
+    .on('data', noop)
+    .on('cancel', () => {
+      t.fail('should not cancel')
+    })
+    .on('error', (err) => {
+      t.is(err.code, 'SERVER_STARTING_UP')
+    })
 })
 
 test('does not retry query after presto error and nextUri if maxRetries is 0', function (t) {
@@ -500,6 +505,42 @@ test('no cancelation after upstream is finished', function (t) {
     stream.pause()
     stream.destroy()
   })
+})
+
+test('skip cancelation after stream is destroyed', function (t) {
+  t.plan(3)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(200, {
+      error: {
+        message: 'not relevant',
+        errorName: 'TEST',
+        errorType: 'not relevant'
+      }
+    })
+
+  const client = lento()
+  const stream = client.createPageStream('select 1')
+
+  stream
+    .on('data', noop)
+    .on('error', (err) => {
+      t.is(err.code, 'TEST', 'got code')
+      t.is(stream.destroyed, true, 'is destroyed')
+
+      stream._destroy = function () {
+        t.fail('should not be called again')
+      }
+
+      stream.destroy()
+    })
+    .on('cancel', () => {
+      t.fail('should not cancel')
+    })
+    .on('close', () => {
+      t.pass('closed')
+    })
 })
 
 test('SET SESSION', function (t) {
