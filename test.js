@@ -501,3 +501,44 @@ test('no cancelation after upstream is finished', function (t) {
     stream.destroy()
   })
 })
+
+test('SET SESSION', function (t) {
+  t.plan(6)
+
+  const client = lento()
+  const kv = 'test_key=false'
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(function (uri, requestBody, cb) {
+      t.is(requestBody, `SET SESSION ${kv}`, 'got session query')
+      t.is(this.req.headers['x-presto-session'], undefined, 'no session')
+
+      cb(null, [200, {
+        updateType: 'SET SESSION',
+        columns: [{ name: 'result', type: 'boolean' }],
+        data: [[true]]
+      }, {
+        'x-presto-set-session': kv
+      }])
+    })
+    .post('/v1/statement')
+    .reply(function (uri, requestBody, cb) {
+      t.is(requestBody, 'select 1', 'got regular query')
+      t.is(this.req.headers['x-presto-session'], kv, 'got session')
+
+      cb(null, [200, {
+        id: 'q1',
+        columns: [{ name: 'a' }],
+        data: [['1']]
+      }])
+    })
+
+  client.set('test_key', false, (err) => {
+    t.ifError(err, 'no set error')
+
+    client.query('select 1', (err) => {
+      t.ifError(err, 'no query error')
+    })
+  })
+})
