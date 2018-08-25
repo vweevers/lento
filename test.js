@@ -190,12 +190,18 @@ test('retries query after presto error and having followed a nextUri', function 
   const stream = client.createPageStream('select 1')
   const requests = []
   const ids = []
+  const uniqueRequests = new Set()
 
   client.on('_request', (requestOptions) => {
-    // Clone because client reuses requestOptions object
+    if (uniqueRequests.has(requestOptions)) {
+      t.fail('should not reuse requestOptions')
+    } else {
+      uniqueRequests.add(requestOptions)
+    }
+
+    // Clone because http module mutates requestOptions object
     const clone = JSON.parse(JSON.stringify(requestOptions))
 
-    // TODO: where do these come from?
     delete clone.host
     delete clone.proto
 
@@ -367,18 +373,27 @@ test('row stream: http error', function (t) {
 })
 
 test('retries HTTP 503', function (t) {
-  t.plan(1)
+  t.plan(3)
 
   nock('http://localhost:8080')
     .post('/v1/statement')
     .times(3)
     .reply(503)
 
+  const uniqueRequests = new Set()
+  const allRequests = []
+
   lento({ maxRetries: 2 })
+    .on('_request', (requestOptions) => {
+      uniqueRequests.add(requestOptions)
+      allRequests.push(requestOptions)
+    })
     .createRowStream('select 1')
     .on('data', noop)
     .on('error', function (err) {
       t.is(err && err.message, 'http 503')
+      t.is(uniqueRequests.size, 1)
+      t.is(allRequests.length, 3)
     })
 })
 
