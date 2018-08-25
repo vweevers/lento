@@ -81,7 +81,7 @@ Control delays and retries:
 <a name="createpagestream"></a>
 ### `createPageStream(sql[, options])`
 
-Execute a query. Returns a [readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) that yields pages of rows.
+Execute a query. Takes `sql` as a string or Buffer and returns a [readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) that yields pages of rows.
 
 ```js
 const through2 = require('through2')
@@ -130,7 +130,7 @@ Besides the usual [Node.js stream events](https://nodejs.org/api/stream.html#str
 <a name="createrowstream"></a>
 ### `createRowStream(sql[, options])`
 
-Execute a query. Returns a [readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) that yields rows. Options:
+Execute a query. Takes `sql` as a string or Buffer and returns a [readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) that yields rows. Options:
 
 - `highWaterMark`: number, default 16
 - `rowFormat`: string, one of `object` (default) or `array`.
