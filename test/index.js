@@ -2,9 +2,9 @@
 
 const test = require('tape')
 const nock = require('nock')
-const lento = require('.')
+const lento = require('..')
 const noop = () => {}
-const VERSION = require('./package.json').version
+const VERSION = require('../package.json').version
 
 test('sets body and headers', function (t) {
   t.plan(7)

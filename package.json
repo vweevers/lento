@@ -6,10 +6,8 @@
   "author": "Vincent Weevers",
   "main": "lento.js",
   "scripts": {
-    "test": "node test.js",
-    "test-docker": "npm run test-docker:run && npm run test-docker:down",
-    "test-docker:run": "docker-compose run --rm --service-ports test",
-    "test-docker:down": "docker-compose down -v"
+    "test": "node test",
+    "test-docker": "docker-compose up -d && node test/integration && docker-compose down -v"
   },
   "files": [
     "lib",
@@ -29,6 +27,7 @@
     "through2": "~2.0.3"
   },
   "devDependencies": {
+    "docker-host": "~3.1.0",
     "nock": "~9.6.1",
     "tape": "~4.9.1"
   },
