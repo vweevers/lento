@@ -36,7 +36,7 @@ Convert a Presto table to CSV:
 const lento = require('lento')
 const csvWriter = require('csv-write-stream')
 const stdout = require('stdout-stream')
-const pump = require('pump')
+const pipeline = require('readable-stream').pipeline
 
 const client = lento({
   hostname: 'example',
@@ -48,12 +48,12 @@ const client = lento({
 const source = client.createRowStream('SELECT * FROM events')
 const transform = csvWriter()
 
-pump(source, transform, stdout, (err) => {
+pipeline(source, transform, stdout, (err) => {
   if (err) throw err
 })
 ```
 
-If the destination streams close or error, the source stream is destroyed (courtesy of [`pump`](https://github.com/mafintosh/pump)) and the Presto query canceled.
+If the destination streams close or error, the source stream is destroyed (courtesy of [`pipeline`](https://nodejs.org/docs/latest-v10.x/api/stream.html#stream_stream_pipeline_streams_callback)) and the Presto query canceled.
 
 ## API
 
