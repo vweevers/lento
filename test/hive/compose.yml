@@ -42,8 +42,8 @@ services:
     env_file:
       - ./hive/hadoop.env
     volumes:
-      - ./tools:/tools
-    command: /tools/wait-for-it.sh namenode:8020 -- /run.sh
+      - ./tools/wait-for-it.sh:/wait-for-it.sh
+    command: bash /wait-for-it.sh namenode:8020 -- /run.sh
     ports:
       - "8088:8088"
   nodemanager:
