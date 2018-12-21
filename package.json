@@ -16,7 +16,7 @@
   "dependencies": {
     "aggregate-error": "~1.0.0",
     "backo": "~1.1.0",
-    "debug": "~4.0.1",
+    "debug": "~4.1.0",
     "deep-set": "~1.0.1",
     "ms": "~2.1.1",
     "once": "~1.4.0",
