@@ -142,9 +142,10 @@ Besides the usual [Node.js stream events](https://nodejs.org/api/stream.html#str
 - `id`: emitted with query id once known
 - `info`: emitted with fully qualified info URL
 - `columns`: emitted with an array of column metadata as returned by Presto
-- `stats`: emitted for each HTTP response, with raw data.
+- `stats`: emitted for each HTTP response, with raw data
+- `state_change`: emitted with a string state (e.g. `RUNNING`, `FINISHED`) when Presto state changes. Should not be relied upon, only meant for debugging.
 
-**Note** The `id`, `info` and `columns` events may be emitted more than once due to retries. Subsequent `stats` events pertain to that retried query as well.
+**Note** The `id`, `info` and `columns` events may be emitted more than once due to retries. Subsequent `stats` and `state_change` events pertain to that retried query as well.
 
 <a name="createrowstream"></a>
 ### `createRowStream(sql[, options])`
