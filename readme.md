@@ -7,7 +7,7 @@
 [![Travis build status](https://img.shields.io/travis/vweevers/lento.svg?label=travis)](http://travis-ci.org/vweevers/lento)
 [![AppVeyor build status](https://img.shields.io/appveyor/ci/vweevers/lento.svg?label=appveyor)](https://ci.appveyor.com/project/vweevers/lento)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-[![Dependency status](https://img.shields.io/david/vweevers/lento.svg)](https://david-dm.org/vweevers/lento)
+[![Dependency status](https://img.shields.io/david/vweevers/lento.svg)](https://david-dm.org/vweevers/lento) [![Greenkeeper badge](https://badges.greenkeeper.io/vweevers/lento.svg)](https://greenkeeper.io/)
 
 ## Table of Contents
 
