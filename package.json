@@ -14,13 +14,13 @@
     "lento.js"
   ],
   "dependencies": {
-    "aggregate-error": "~2.0.0",
+    "aggregate-error": "~2.2.0",
     "backo": "~1.1.0",
     "debug": "~4.1.0",
     "deep-set": "~1.0.1",
     "ms": "~2.1.1",
     "once": "~1.4.0",
-    "readable-stream": "~3.1.1",
+    "readable-stream": "~3.2.0",
     "simple-concat": "~1.0.0",
     "sql-escape-string": "~1.1.0"
   },
