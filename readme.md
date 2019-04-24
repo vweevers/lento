@@ -123,11 +123,11 @@ Options:
 - `highWaterMark`: number, default 0
 - `rowFormat`: string, one of `object` (default) or `array`.
 
-The `pageSize` specifies the maximum number of rows per page. Presto may return less per page. If Presto returns more rows than `pageSize`, the surplus is buffered and the stream will not make another HTTP request to Presto until fully drained. Note that Presto retains finished queries for 15 minutes. If `pageSize` is <= 0 the stream emits pages as returned by Presto, without slicing them up.
+The `pageSize` specifies the maximum number of rows per page. Presto may return less per page. If Presto returns more rows than `pageSize`, the surplus is buffered and the stream will not make another HTTP request to Presto until fully drained. Note that if the (remainder of) rows fit in Presto's buffers, Presto will not block (until another HTTP request is made) but instead go into the `FINISHED` state after which you have 15 minutes (by default) to fetch the remaining results. If `pageSize` is <= 0 the stream emits pages as returned by Presto, without slicing them up.
 
 The `highWaterMark` specifies how many pages to fetch preemptively. The maximum numbers of rows held in memory is approximately `(highWaterMark || 1) * pageSize`, plus any surplus from the last HTTP request. Because Presto can return thousands of rows per request, the default `highWaterMark` is 0 so that we *don't* preemptively fetch and only hold the number of rows contained in the last HTTP request.
 
-If you care more about throughput, you can opt to increase `highWaterMark`. This can also help if you notice Presto going into `BLOCKING` state because you're not reading fast enough. Additionally you can increase `pageSize` if processing time is minimal or if you don't mind blocking the rest of your app while processing a page.
+If you care more about throughput, you can opt to increase `highWaterMark`. Additionally you can increase `pageSize` if processing time is minimal or if you don't mind blocking the rest of your app while processing a page.
 
 For tuning the Presto side of things, use [`set()`](#set).
 
