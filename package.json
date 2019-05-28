@@ -20,7 +20,7 @@
     "deep-set": "~1.0.1",
     "ms": "~2.1.1",
     "once": "~1.4.0",
-    "readable-stream": "~3.3.0",
+    "readable-stream": "~3.4.0",
     "simple-concat": "~1.0.0",
     "sql-escape-string": "~1.1.0"
   },
