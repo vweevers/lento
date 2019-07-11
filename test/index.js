@@ -89,7 +89,7 @@ test('row stream', function (t) {
         { name: 'a' },
         { name: 'b' }
       ],
-      data: [ [0, 0], [1, 1] ]
+      data: [[0, 0], [1, 1]]
     })
 
   const stream = lento().createRowStream('select 1')
@@ -100,7 +100,7 @@ test('row stream', function (t) {
   })
 
   stream.on('end', function () {
-    t.same(emitted, [ { a: 0, b: 0 }, { a: 1, b: 1 } ])
+    t.same(emitted, [{ a: 0, b: 0 }, { a: 1, b: 1 }])
   })
 })
 
@@ -115,7 +115,7 @@ test('page stream', function (t) {
         { name: 'a' },
         { name: 'b' }
       ],
-      data: [ [0, 0], [1, 1] ]
+      data: [[0, 0], [1, 1]]
     })
 
   const stream = lento().createPageStream('select 1')
@@ -126,7 +126,7 @@ test('page stream', function (t) {
   })
 
   stream.on('end', function () {
-    t.same(emitted, [[ { a: 0, b: 0 }, { a: 1, b: 1 } ]])
+    t.same(emitted, [[{ a: 0, b: 0 }, { a: 1, b: 1 }]])
   })
 })
 
@@ -364,7 +364,7 @@ test('row stream: http error', function (t) {
         { name: 'a' },
         { name: 'b' }
       ],
-      data: [ [0, 0], [1, 1] ]
+      data: [[0, 0], [1, 1]]
     })
 
   lento()
