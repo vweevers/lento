@@ -37,7 +37,7 @@
     "prestodb"
   ],
   "engines": {
-    "node": ">=6.8.0"
+    "node": ">=6.13.0"
   },
   "repository": "vweevers/lento",
   "bugs": "https://github.com/vweevers/lento/issues",
