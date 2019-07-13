@@ -148,7 +148,10 @@ test('follows nextUri', function (t) {
   const requests = []
 
   stream.on('request', (requestOptions) => {
-    requests.push({ port: requestOptions.port, path: requestOptions.path })
+    requests.push('port' in requestOptions
+      ? { port: requestOptions.port, path: requestOptions.path }
+      : { path: requestOptions.path }
+    )
   })
 
   stream.on('data', function () {
@@ -157,9 +160,46 @@ test('follows nextUri', function (t) {
 
   stream.on('end', function () {
     t.same(requests, [
-      { port: undefined, path: '/v1/statement' },
+      { path: '/v1/statement' },
       { port: 8080, path: '/two' },
       { port: 8081, path: '/three' }
+    ])
+  })
+})
+
+test('follows nextUri with default HTTP port', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(200, { id: 'q1', nextUri: 'http://localhost:8080/two' })
+    .get('/two')
+    // No port, lento should honor that (and not go to other-host:8080)
+    .reply(200, { nextUri: 'http://other-host/three' })
+
+  nock('http://other-host')
+    .get('/three')
+    .reply(200, {})
+
+  const stream = lento().createRowStream('select 1')
+  const requests = []
+
+  stream.on('request', (requestOptions) => {
+    requests.push('port' in requestOptions
+      ? { port: requestOptions.port, path: requestOptions.path }
+      : { path: requestOptions.path }
+    )
+  })
+
+  stream.on('data', function () {
+    t.fail('not expecting data')
+  })
+
+  stream.on('end', function () {
+    t.same(requests, [
+      { path: '/v1/statement' },
+      { port: 8080, path: '/two' },
+      { port: undefined, path: '/three' }
     ])
   })
 })
