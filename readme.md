@@ -1,6 +1,6 @@
 # lento <sup id="a1">[1](#f1)</sup>
 
-**Streaming Node.js client for [Presto](https://prestodb.io/), the "Distributed SQL Query Engine for Big Data".**
+**Streaming Node.js client for [Presto](https://prestosql.io/), the "Distributed SQL Query Engine for Big Data".**
 
 [![npm status](http://img.shields.io/npm/v/lento.svg)](https://www.npmjs.org/package/lento)
 [![node](https://img.shields.io/node/v/lento.svg)](https://www.npmjs.org/package/lento)
@@ -28,7 +28,7 @@
 - Set session properties
 - Set time limit (enforced by Presto)
 - Get rows as objects or arrays
-- Uses [Presto HTTP protocol v1](https://github.com/prestodb/presto/wiki/HTTP-Protocol)
+- Uses [Presto HTTP protocol v1](https://github.com/prestosql/presto/wiki/HTTP-Protocol)
 - Keep-alive HTTP connections
 - Supports Gzip and Deflate content encoding
 - Retries [HTTP 503 and other failures](#builtin-retry).
@@ -87,7 +87,7 @@ Options:
 - `user`: string, default none. Sent as `X-Presto-User` header.
 - `timezone`: string, for example `UTC`, default none. Sent as `X-Presto-Time-Zone` header.
 
-You can specify a [catalog](https://prestodb.io/docs/current/overview/concepts.html#catalog) and [schema](https://prestodb.io/docs/current/overview/concepts.html#schema) to avoid writing fully-qualified table names in queries:
+You can specify a [catalog](https://prestosql.io/docs/current/overview/concepts.html#catalog) and [schema](https://prestosql.io/docs/current/overview/concepts.html#schema) to avoid writing fully-qualified table names in queries:
 
 - `catalog`: string, for example `hive`, default none. Sent as `X-Presto-Catalog` header.
 - `schema`: string, for example `logs`, default none. Sent as `X-Presto-Schema` header.
@@ -242,7 +242,7 @@ Converts the result of `SHOW SESSION` into a tree, coerces boolean and integer v
 }
 ```
 
-See [Presto Properties](https://prestodb.io/docs/current/admin/properties.html) for a detailed description of (some of) the properties.
+See [Presto Properties](https://prestosql.io/docs/current/admin/properties.html) for a detailed description of (some of) the properties.
 
 ### Errors
 
