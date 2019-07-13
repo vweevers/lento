@@ -83,7 +83,7 @@ services:
     # volumes:
     #   - hive-metastore-pgdata:/var/lib/postgresql/data
   presto-coordinator:
-    image: shawnzhu/prestodb:0.181
+    image: shawnzhu/prestodb:300
     ports:
       - "8080:8080"
     depends_on:
