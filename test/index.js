@@ -204,6 +204,37 @@ test('follows nextUri with default HTTP port', function (t) {
   })
 })
 
+test('follows 307 redirect', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(307, {}, { Location: 'http://other-host:8081/v1/statement' })
+
+  nock('http://other-host:8081')
+    .post('/v1/statement')
+    .reply(200, {})
+
+  const stream = lento().createRowStream('select 1')
+  const requests = []
+
+  stream.on('request', (requestOptions) => {
+    requests.push({ port: requestOptions.port, path: requestOptions.path })
+  })
+
+  stream.on('data', function () {
+    t.fail('not expecting data')
+  })
+
+  stream.on('end', function () {
+    t.same(requests, [
+      { port: undefined, path: '/v1/statement' }
+    ])
+    // ensures both mocks were called
+    nock.isDone()
+  })
+})
+
 test('retries query after presto error and having followed a nextUri', function (t) {
   t.plan(3)
 
