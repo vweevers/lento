@@ -3,6 +3,7 @@
 const test = require('tape')
 const nock = require('nock')
 const lento = require('..')
+const finished = require('readable-stream').finished
 const noop = () => {}
 const VERSION = require('../package.json').version
 
@@ -209,29 +210,106 @@ test('follows 307 redirect', function (t) {
 
   nock('http://localhost:8080')
     .post('/v1/statement')
-    .reply(307, {}, { Location: 'http://other-host:8081/v1/statement' })
+    .reply(307, {}, { location: 'http://other-host:8081/v1/statement?foo' })
 
   nock('http://other-host:8081')
-    .post('/v1/statement')
+    .post('/v1/statement?foo')
     .reply(200, {})
 
-  const stream = lento().createRowStream('select 1')
+  const client = lento()
+  const stream = client.createRowStream('select 1')
   const requests = []
 
-  stream.on('request', (requestOptions) => {
-    requests.push({ port: requestOptions.port, path: requestOptions.path })
-  })
-
-  stream.on('data', function () {
-    t.fail('not expecting data')
+  client.on('_request', ({ protocol, hostname, port, path }) => {
+    requests.push({ protocol, hostname, port, path })
   })
 
   stream.on('end', function () {
     t.same(requests, [
-      { port: undefined, path: '/v1/statement' }
+      { protocol: 'http:', hostname: 'localhost', port: 8080, path: '/v1/statement' },
+      { protocol: 'http:', hostname: 'other-host', port: 8081, path: '/v1/statement?foo' }
     ])
+
     // ensures both mocks were called
     nock.isDone()
+  }).resume()
+})
+
+test('follows 307 redirect to url without port', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(307, {}, { location: 'http://other-host/v1/statement?foo' })
+
+  nock('http://other-host')
+    .post('/v1/statement?foo')
+    .reply(200, {})
+
+  const client = lento()
+  const stream = client.createRowStream('select 1')
+  const requests = []
+
+  client.on('_request', ({ protocol, hostname, port, path }) => {
+    requests.push({ protocol, hostname, port, path })
+  })
+
+  stream.on('end', function () {
+    t.same(requests, [
+      { protocol: 'http:', hostname: 'localhost', port: 8080, path: '/v1/statement' },
+      { protocol: 'http:', hostname: 'other-host', port: undefined, path: '/v1/statement?foo' }
+    ])
+
+    // ensures both mocks were called
+    nock.isDone()
+  }).resume()
+})
+
+test('does not allow protocol switch on 307 redirect (http)', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(307, {}, { location: 'https://other-host:8081/v1/statement?foo' })
+
+  finished(lento().createRowStream('select 1').resume(), function (err) {
+    t.is(err && err.message, 'http 307 redirect protocol switch is not allowed')
+  })
+})
+
+test('does not allow protocol switch on 307 redirect (https)', function (t) {
+  t.plan(1)
+
+  nock('https://localhost:8080')
+    .post('/v1/statement')
+    .reply(307, {}, { location: 'http://other-host:8081/v1/statement?foo' })
+
+  finished(lento({ protocol: 'https:' }).createRowStream('select 1').resume(), function (err) {
+    t.is(err && err.message, 'http 307 redirect protocol switch is not allowed')
+  })
+})
+
+test('ensures location header exists on 307 redirect', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(307, {}, {})
+
+  finished(lento().createRowStream('select 1').resume(), function (err) {
+    t.is(err && err.message, 'http 307 redirect is missing "location" header')
+  })
+})
+
+test('catches invalid location header on 307 redirect', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(307, {}, { location: 'nope' })
+
+  finished(lento().createRowStream('select 1').resume(), function (err) {
+    t.is(err && err.message, 'http 307 redirect has invalid "location" header: nope')
   })
 })
 
