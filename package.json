@@ -14,7 +14,7 @@
     "lento.js"
   ],
   "dependencies": {
-    "aggregate-error": "~2.2.0",
+    "aggregate-error": "~3.0.0",
     "backo": "~1.1.0",
     "debug": "~4.1.0",
     "deep-set": "~1.0.1",
