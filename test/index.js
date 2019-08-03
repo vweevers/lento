@@ -502,6 +502,29 @@ test('does not retry query after presto error if maxRetries is 0', function (t) 
   })
 })
 
+test('catches invalid nextUri', function (t) {
+  t.plan(1)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(200, {
+      id: 'q1',
+      nextUri: 'foo'
+    })
+
+  const client = lento()
+  const stream = client.createPageStream('select 1')
+
+  stream
+    .on('cancel', () => {
+      t.fail('should not cancel')
+    })
+    .on('error', (err) => {
+      t.is(err.message, 'nextUri is invalid: foo')
+    })
+    .resume()
+})
+
 test('row stream: http error', function (t) {
   t.plan(1)
 
