@@ -46,6 +46,7 @@ const pipeline = require('readable-stream').pipeline
 const client = lento({
   hostname: 'example',
   port: 8080,
+  user: 'test',
   catalog: 'hive',
   schema: 'test'
 })
