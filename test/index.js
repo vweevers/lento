@@ -274,7 +274,7 @@ test('does not allow protocol switch on 307 redirect (http)', function (t) {
     .reply(307, {}, { location: 'https://other-host:8081/v1/statement?foo' })
 
   finished(lento().createRowStream('select 1').resume(), function (err) {
-    t.is(err && err.message, 'http 307 redirect protocol switch is not allowed')
+    t.is(err && err.message, 'HTTP 307 redirect protocol switch is not allowed')
   })
 })
 
@@ -286,7 +286,7 @@ test('does not allow protocol switch on 307 redirect (https)', function (t) {
     .reply(307, {}, { location: 'http://other-host:8081/v1/statement?foo' })
 
   finished(lento({ protocol: 'https:' }).createRowStream('select 1').resume(), function (err) {
-    t.is(err && err.message, 'http 307 redirect protocol switch is not allowed')
+    t.is(err && err.message, 'HTTP 307 redirect protocol switch is not allowed')
   })
 })
 
@@ -298,7 +298,7 @@ test('ensures location header exists on 307 redirect', function (t) {
     .reply(307, {}, {})
 
   finished(lento().createRowStream('select 1').resume(), function (err) {
-    t.is(err && err.message, 'http 307 redirect is missing "location" header')
+    t.is(err && err.message, 'HTTP 307 redirect is missing "location" header')
   })
 })
 
@@ -310,7 +310,7 @@ test('catches invalid location header on 307 redirect', function (t) {
     .reply(307, {}, { location: 'nope' })
 
   finished(lento().createRowStream('select 1').resume(), function (err) {
-    t.is(err && err.message, 'http 307 redirect has invalid "location" header: nope')
+    t.is(err && err.message, 'HTTP 307 redirect has invalid "location" header: nope')
   })
 })
 
@@ -521,7 +521,7 @@ test('catches invalid nextUri', function (t) {
       t.fail('should not cancel')
     })
     .on('error', (err) => {
-      t.is(err.message, 'nextUri is invalid: foo')
+      t.is(err.message, 'Presto sent invalid nextUri: foo')
     })
     .resume()
 })
@@ -665,7 +665,7 @@ test('does not retry ECONNREFUSED if maxRetries is 0', function (t) {
 })
 
 test('broken content encoding (gzip)', function (t) {
-  t.plan(2)
+  t.plan(3)
 
   nock.restore()
   http.createServer().listen(0, 'localhost', function () {
@@ -679,7 +679,8 @@ test('broken content encoding (gzip)', function (t) {
     lento({ port: this.address().port, maxRetries: 1 })
       .createRowStream('select 1')
       .on('error', (err) => {
-        t.is(err && err.message, 'incorrect header check')
+        t.is(err && err.code, 'Z_DATA_ERROR')
+        t.is(err && err.message, 'Unable to decode gzip content: incorrect header check')
 
         this.close((err) => {
           t.ifError(err, 'no close error')
@@ -690,7 +691,7 @@ test('broken content encoding (gzip)', function (t) {
 })
 
 test('broken content encoding (deflate)', function (t) {
-  t.plan(2)
+  t.plan(3)
 
   nock.restore()
   http.createServer().listen(0, 'localhost', function () {
@@ -702,7 +703,8 @@ test('broken content encoding (deflate)', function (t) {
     lento({ port: this.address().port, maxRetries: 1 })
       .createRowStream('select 1')
       .on('error', (err) => {
-        t.is(err && err.message, 'incorrect header check')
+        t.is(err && err.code, 'Z_DATA_ERROR')
+        t.is(err && err.message, 'Unable to decode deflate content: incorrect header check')
 
         this.close((err) => {
           t.ifError(err, 'no close error')
