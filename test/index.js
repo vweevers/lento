@@ -526,11 +526,11 @@ test('catches invalid nextUri', function (t) {
 })
 
 test('row stream: http error', function (t) {
-  t.plan(1)
+  t.plan(2)
 
   nock('http://localhost:8080')
     .post('/v1/statement')
-    .reply(500, {
+    .reply(418, {
       id: 'q1',
       columns: [
         { name: 'a' },
@@ -545,12 +545,13 @@ test('row stream: http error', function (t) {
       t.fail('not expecting data')
     })
     .on('error', function (err) {
-      t.is(err && err.message, 'http 500')
+      t.is(err.statusCode, 418)
+      t.is(err && err.message, 'I\'m a teapot')
     })
 })
 
 test('retries HTTP 503', function (t) {
-  t.plan(3)
+  t.plan(4)
 
   nock('http://localhost:8080')
     .post('/v1/statement')
@@ -568,14 +569,15 @@ test('retries HTTP 503', function (t) {
     .createRowStream('select 1')
     .on('data', noop)
     .on('error', function (err) {
-      t.is(err && err.message, 'http 503')
+      t.is(err && err.statusCode, 503)
+      t.is(err && err.message, 'Service Unavailable')
       t.is(uniqueRequests.size, 1)
       t.is(allRequests.length, 3)
     })
 })
 
 test('does not retry HTTP 503 if maxRetries is 0', function (t) {
-  t.plan(1)
+  t.plan(2)
 
   nock('http://localhost:8080')
     .post('/v1/statement')
@@ -585,8 +587,44 @@ test('does not retry HTTP 503 if maxRetries is 0', function (t) {
     .createRowStream('select 1')
     .on('data', noop)
     .on('error', function (err) {
-      t.is(err && err.message, 'http 503')
+      t.is(err && err.statusCode, 503)
+      t.is(err && err.message, 'Service Unavailable')
     })
+})
+
+test('does not retry HTTP 5xx other than 503', function (t) {
+  t.plan(3)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(504)
+
+  let requests = 0
+
+  lento({ maxRetries: 10 })
+    .on('_request', () => requests++)
+    .createRowStream('select 1')
+    .on('data', noop)
+    .on('error', function (err) {
+      t.is(err && err.statusCode, 504)
+      t.is(err && err.message, 'Gateway Timeout')
+      t.is(requests, 1)
+    })
+})
+
+test('HTTP 4xx-5xx can have custom error message', function (t) {
+  t.plan(2)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(400, 'beep boop', { 'content-type': 'text/plain' })
+
+  lento()
+    .createRowStream('select 1')
+    .on('error', function (err) {
+      t.is(err && err.statusCode, 400)
+      t.is(err && err.message, 'beep boop')
+    }).resume()
 })
 
 test('retries ECONNREFUSED', function (t) {
