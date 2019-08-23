@@ -13,7 +13,7 @@ test('sets body and headers', function (t) {
 
   nock('http://localhost:8080')
     .post('/v1/statement')
-    .reply(function (uri, requestBody, cb) {
+    .reply(function (uri, requestBody, cb) { /* eslint-disable dot-notation */
       t.is(requestBody, 'select 1')
       t.is(this.req.headers['user-agent'], `lento ${VERSION}`)
       t.is(this.req.headers['x-presto-source'], 'lento')
