@@ -263,15 +263,15 @@ client.setTimeout('1ms', (err) => {
 
 ### Builtin Retry
 
-Per the specification of Presto HTTP Protocol v1, `lento` will sleep for 50-100ms and retry an HTTP request if Presto responds with 503. In addition, `lento` retries if the TCP connection is refused.
+If Presto responds to an HTTP request with 503 or if the TCP connection is refused, `lento` retries the request with an exponential delay between 1 and 10 seconds.
 
-Lastly, a query (consisting of one or more HTTP requests) will be retried if Presto returns an error like `SERVER_STARTING_UP` or `HIVE_METASTORE_ERROR`, but only if no data was received yet, to avoid emitting duplicates.
+In addition, a query (consisting of one or more HTTP requests) will be retried if Presto returns an error like `SERVER_STARTING_UP` or `HIVE_METASTORE_ERROR`, but only if no data was received yet, to avoid emitting duplicates.
 
 I wish retries could be handled at a higher level, but as it stands, `lento` is both a low-level HTTP client and a streaming client, so retries have to be handled here. This may change in the future.
 
 ### Debug
 
-Enable debug output with `DEBUG=lento`. Mostly logs HTTP requests and retries, no usernames, SQL or other potentially sensitive data. Beware, it can log thousands of lines per query.
+Enable debug output with `DEBUG=lento`. Mostly logs HTTP requests and retries, no usernames, SQL or other potentially sensitive data. Beware, it can log hundreds of lines per query.
 
 ## Install
 

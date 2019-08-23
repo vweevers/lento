@@ -2,6 +2,7 @@
 
 const test = require('tape')
 const nock = require('nock')
+const http = require('http')
 const lento = require('..')
 const finished = require('readable-stream').finished
 const noop = () => {}
@@ -629,6 +630,7 @@ test('HTTP 4xx-5xx can have custom error message', function (t) {
 
 test('retries ECONNREFUSED', function (t) {
   t.plan(2)
+  nock.restore()
 
   let retries = 0
 
@@ -639,11 +641,14 @@ test('retries ECONNREFUSED', function (t) {
     .on('error', function (err) {
       t.is(err.code, 'ECONNREFUSED')
       t.is(retries, 1)
+
+      nock.activate()
     })
 })
 
 test('does not retry ECONNREFUSED if maxRetries is 0', function (t) {
   t.plan(2)
+  nock.restore()
 
   let retries = 0
 
@@ -654,7 +659,57 @@ test('does not retry ECONNREFUSED if maxRetries is 0', function (t) {
     .on('error', function (err) {
       t.is(err.code, 'ECONNREFUSED')
       t.is(retries, 0)
+
+      nock.activate()
     })
+})
+
+test('broken content encoding (gzip)', function (t) {
+  t.plan(2)
+
+  nock.restore()
+  http.createServer().listen(0, 'localhost', function () {
+    this.on('request', (req, res) => {
+      res.writeHead(200, { 'content-encoding': 'gzip' })
+
+      // Write invalid 10-byte gzip header. Don't end, client should.
+      res.write('0000000000')
+    })
+
+    lento({ port: this.address().port, maxRetries: 1 })
+      .createRowStream('select 1')
+      .on('error', (err) => {
+        t.is(err && err.message, 'incorrect header check')
+
+        this.close((err) => {
+          t.ifError(err, 'no close error')
+          nock.activate()
+        })
+      }).resume()
+  })
+})
+
+test('broken content encoding (deflate)', function (t) {
+  t.plan(2)
+
+  nock.restore()
+  http.createServer().listen(0, 'localhost', function () {
+    this.on('request', (req, res) => {
+      res.writeHead(200, { 'content-encoding': 'deflate' })
+      res.write('111')
+    })
+
+    lento({ port: this.address().port, maxRetries: 1 })
+      .createRowStream('select 1')
+      .on('error', (err) => {
+        t.is(err && err.message, 'incorrect header check')
+
+        this.close((err) => {
+          t.ifError(err, 'no close error')
+          nock.activate()
+        })
+      }).resume()
+  })
 })
 
 test('row stream: presto error', function (t) {
