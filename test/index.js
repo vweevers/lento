@@ -712,6 +712,120 @@ test('broken content encoding (deflate)', function (t) {
   })
 })
 
+test('ETIMEDOUT (before anything was received)', function (t) {
+  t.plan(3)
+
+  nock.restore()
+  http.createServer().listen(0, 'localhost', function () {
+    this.on('request', (req, res) => {
+      // Ensure we're not testing server-side timeouts
+      req.setTimeout(0)
+      t.pass('server got request')
+    })
+
+    lento({ port: this.address().port, socketTimeout: '100ms' })
+      .createRowStream('select 1')
+      .on('error', (err) => {
+        t.is(err.code, 'ETIMEDOUT')
+
+        this.close((err) => {
+          t.ifError(err, 'no close error')
+          nock.activate()
+        })
+      }).resume()
+  })
+})
+
+test('ETIMEDOUT (after headers were received)', function (t) {
+  t.plan(2)
+
+  nock.restore()
+  http.createServer().listen(0, 'localhost', function () {
+    this.on('request', (req, res) => {
+      // Ensure we're not testing server-side timeouts
+      req.setTimeout(0)
+
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.write('{')
+    })
+
+    lento({ port: this.address().port, maxRetries: 1, socketTimeout: '100ms' })
+      .createRowStream('select 1')
+      .on('error', (err) => {
+        t.is(err.code, 'ETIMEDOUT')
+
+        this.close((err) => {
+          t.ifError(err, 'no close error')
+          nock.activate()
+        })
+      }).resume()
+  })
+})
+
+test('ETIMEDOUT (after redirect)', function (t) {
+  t.plan(6)
+  nock.restore()
+
+  const server1 = http.createServer().listen(0, 'localhost', function () {
+    const server2 = http.createServer().listen(0, 'localhost', function () {
+      server1.on('request', (req, res) => {
+        // Ensure we're not testing server-side timeouts
+        req.setTimeout(0)
+
+        // Don't end, client should.
+        res.writeHead(307, { location: 'http://localhost:' + server2.address().port })
+        res.write('dummy text')
+      })
+
+      server2.on('request', (req, res) => {
+        req.setTimeout(0)
+        t.pass('server got request')
+      })
+
+      lento({ port: server1.address().port, socketTimeout: '100ms' })
+        .createRowStream('select 1')
+        .on('error', (err) => {
+          t.is(err.code, 'ETIMEDOUT')
+
+          server1.getConnections((err, count) => {
+            t.ifError(err, 'no getConnections error')
+            t.is(count, 0, 'original connection was closed')
+
+            server1.close((err) => t.ifError(err, 'no close error'))
+            server2.close((err) => t.ifError(err, 'no close error'))
+
+            nock.activate()
+          })
+        }).resume()
+    })
+  })
+})
+
+test('ETIMEDOUT after user destroy', function (t) {
+  t.plan(3)
+
+  nock.restore()
+  http.createServer().listen(0, 'localhost', function () {
+    const stream = lento({ port: this.address().port, socketTimeout: '500ms' })
+      .createRowStream('select 1')
+      .on('error', (err) => {
+        t.is(err && err.message, 'user error')
+
+        this.close((err) => {
+          t.ifError(err, 'no close error')
+          nock.activate()
+        })
+      }).resume()
+
+    this.on('request', (req, res) => {
+      // Ensure we're not testing server-side timeouts
+      req.setTimeout(0)
+      t.pass('server got request')
+      stream.destroy(new Error('user error'))
+    })
+  })
+})
+
 test('row stream: presto error', function (t) {
   t.plan(4)
 

@@ -96,6 +96,7 @@ Control delays and retries:
 
 - `pollInterval`: number (milliseconds) or string with unit (e.g. `1s`, `500ms`). How long to wait for server-side state changes, before sending another HTTP request. Default is 1 second.
 - `maxRetries`: number of retries if Presto responds with [HTTP 503 or other failures](#builtin-retry). Default is 10.
+- `socketTimeout`: number (milliseconds) or string with unit. When to timeout after inactivity on the socket. Default is 2 minutes.
 
 <a name="createpagestream"></a>
 ### `createPageStream(sql[, options])`
