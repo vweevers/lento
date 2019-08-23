@@ -47,7 +47,8 @@ const client = lento({
   hostname: 'example',
   port: 8080,
   catalog: 'hive',
-  schema: 'test'
+  schema: 'test',
+  user: 'test'
 })
 
 const source = client.createRowStream('SELECT * FROM events')
