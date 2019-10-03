@@ -124,6 +124,7 @@ Options:
 - `pageSize`: number, default 500
 - `highWaterMark`: number, default 0
 - `rowFormat`: string, one of `object` (default) or `array`.
+- `deserialize`: boolean, default true
 
 The `pageSize` specifies the maximum number of rows per page. Presto may return less per page. If Presto returns more rows than `pageSize`, the surplus is buffered and the stream will not make another HTTP request to Presto until fully drained. Note that if the (remainder of) rows fit in Presto's buffers, Presto will not block (until another HTTP request is made) but instead go into the `FINISHED` state after which you have 15 minutes (by default) to fetch the remaining results. If `pageSize` is <= 0 the stream emits pages as returned by Presto, without slicing them up.
 
