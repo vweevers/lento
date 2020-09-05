@@ -14,22 +14,22 @@
     "lento.js"
   ],
   "dependencies": {
-    "aggregate-error": "~3.0.0",
-    "backo": "~1.1.0",
-    "debug": "~4.1.0",
-    "deep-set": "~1.0.1",
-    "http-errors": "~1.7.3",
-    "ms": "~2.1.1",
-    "once": "~1.4.0",
-    "readable-stream": "~3.6.0",
-    "simple-concat": "~1.0.0",
-    "sql-escape-string": "~1.1.0"
+    "aggregate-error": "^3.1.0",
+    "backo": "^1.1.0",
+    "debug": "^4.1.0",
+    "deep-set": "^1.0.1",
+    "http-errors": "^1.8.0",
+    "ms": "^2.1.1",
+    "once": "^1.4.0",
+    "readable-stream": "^3.6.0",
+    "simple-concat": "^1.0.1",
+    "sql-escape-string": "^1.1.0"
   },
   "devDependencies": {
     "docker-host": "^3.1.0",
     "nock": "^11.3.3",
-    "standard": "^14.0.0",
-    "tape": "^5.0.0"
+    "standard": "^14.3.4",
+    "tape": "^5.0.1"
   },
   "keywords": [
     "database",
