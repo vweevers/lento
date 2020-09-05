@@ -9,7 +9,7 @@ const config = {
   port: 8080,
   user: 'test',
   schema: 'test',
-  catalog: 'hive'
+  catalog: 'memory'
 }
 
 const factory = () => lento(config)

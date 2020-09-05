@@ -7,7 +7,7 @@
   "main": "lento.js",
   "scripts": {
     "test": "standard && node test",
-    "test-docker": "docker-compose up -d && node test/integration && docker-compose down -v"
+    "test-docker": "docker-compose down -v && docker-compose up -d && node test/integration && docker-compose down -v"
   },
   "files": [
     "lib",
