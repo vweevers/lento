@@ -12,34 +12,31 @@ const config = {
   catalog: 'memory'
 }
 
-const factory = () => lento(config)
+const factory = (opts) => lento({ ...config, ...opts })
 
 test('setup', function (t) {
-  t.plan(5)
-
-  const client = factory()
-  const table = 'test_' + Date.now()
-
-  // Dummy test.
-  client.query(`CREATE SCHEMA IF NOT EXISTS ${config.schema}`, (err) => {
+  factory().query(`CREATE SCHEMA IF NOT EXISTS ${config.schema}`, (err) => {
     t.ifError(err, 'no query error')
-
-    client.query(`CREATE TABLE ${table} (name varchar(30))`, (err) => {
-      t.ifError(err, 'no query error')
-
-      client.query(`INSERT INTO ${table} VALUES ('a'), ('b')`, (err) => {
-        t.ifError(err, 'no query error')
-
-        client.query(`SELECT * FROM ${table}`, (err, rows) => {
-          t.ifError(err, 'no query error')
-          t.same(rows, [{ name: 'a' }, { name: 'b' }])
-        })
-      })
-    })
+    t.end()
   })
 })
 
-test('teardown', function (t) {
-  t.pass()
-  t.end()
+test('basic', function (t) {
+  t.plan(4)
+
+  const client = factory()
+  const table = 'basic_' + Date.now()
+
+  client.query(`CREATE TABLE ${table} (name varchar(30))`, (err) => {
+    t.ifError(err, 'no query error')
+
+    client.query(`INSERT INTO ${table} VALUES ('a'), ('b')`, (err) => {
+      t.ifError(err, 'no query error')
+
+      client.query(`SELECT * FROM ${table}`, (err, rows) => {
+        t.ifError(err, 'no query error')
+        t.same(rows, [{ name: 'a' }, { name: 'b' }])
+      })
+    })
+  })
 })
