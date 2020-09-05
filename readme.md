@@ -87,6 +87,7 @@ Options:
 - `protocol`: string, one of `http:` (default) or `https:`
 - `user`: string, default none. Sent as `X-Presto-User` header.
 - `timezone`: string, for example `UTC`, default none. Sent as `X-Presto-Time-Zone` header.
+- `parametricDatetime`: boolean, default false. Opt-in to datetime types with variable precision, for example `timestamp(6)`. When not set, datetime types are returned with a precision of 3.
 
 You can specify a [catalog](https://prestosql.io/docs/current/overview/concepts.html#catalog) and [schema](https://prestosql.io/docs/current/overview/concepts.html#schema) to avoid writing fully-qualified table names in queries:
 
