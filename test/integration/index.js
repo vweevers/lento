@@ -5,16 +5,13 @@ const host = require('docker-host')
 const lento = require('../../lento')
 
 const config = {
-  hostname: process.env.CI ? 'localhost' : host().host,
+  hostname: host().host,
   port: 8080,
   user: 'test',
   schema: 'test',
   catalog: 'memory',
   timezone: 'UTC'
 }
-
-console.error('docker host', host().host)
-console.error('config', config)
 
 const factory = (opts) => lento({ ...config, ...opts })
 

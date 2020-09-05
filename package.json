@@ -6,7 +6,8 @@
   "author": "Vincent Weevers",
   "main": "lento.js",
   "scripts": {
-    "test": "standard && node test && npm-run-all test:docker:*",
+    "test": "standard && node test",
+    "test:docker": "npm-run-all test:docker:*",
     "test:docker:pull": "docker pull prestosql/presto:340",
     "test:docker:up": "docker run -d -p 8080:8080 --rm --name lento_test prestosql/presto:340",
     "test:docker:run": "node test/integration",
