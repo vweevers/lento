@@ -1,7 +1,0 @@
-version: '3.4'
-
-services:
-  presto-coordinator:
-    image: prestosql/presto:340
-    ports:
-      - "8080:8080"

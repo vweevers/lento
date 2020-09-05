@@ -6,8 +6,10 @@
   "author": "Vincent Weevers",
   "main": "lento.js",
   "scripts": {
-    "test": "standard && node test",
-    "test-docker": "docker-compose down -v && docker-compose up -d && node test/integration && docker-compose down -v"
+    "test": "standard && node test && npm run test:docker",
+    "test:docker": "npm run test:docker:up && node test/integration && npm run test:docker:down",
+    "test:docker:up": "docker run -d -p 8080:8080 --rm --name lento_test prestosql/presto:340",
+    "test:docker:down": "docker kill lento_test"
   },
   "files": [
     "lib",
