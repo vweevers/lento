@@ -98,6 +98,10 @@ Control delays and retries:
 - `maxRetries`: number of retries if Presto responds with [HTTP 503 or other failures](#builtin-retry). Default is 10.
 - `socketTimeout`: number (milliseconds) or string with unit. When to timeout after inactivity on the socket. Default is 2 minutes.
 
+Custom request headers:
+
+- `headers`: object containing custom headers to append to every request such as `Authorization` or any `X-Presto-...` header not set using the options above
+
 <a name="createpagestream"></a>
 ### `createPageStream(sql[, options])`
 
