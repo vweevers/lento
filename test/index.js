@@ -1001,11 +1001,10 @@ test('session', function (t) {
         type: 'varchar',
         description: 'Join distribution type. Possible values: [BROADCAST, PARTITIONED, AUTOMATIC]'
       },
-      // TODO: fix NaN
       max_drivers_per_task: {
         key: 'max_drivers_per_task',
-        value: NaN,
-        default: NaN,
+        value: null,
+        default: null,
         type: 'integer',
         description: 'Maximum number of drivers per task'
       },
