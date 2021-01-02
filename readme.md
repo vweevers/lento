@@ -85,6 +85,7 @@ Options:
 - `protocol`: string, one of `http:` (default) or `https:`
 - `user`: string, default none. Sent as `X-Presto-User` header.
 - `timezone`: string, for example `UTC`, default none. Sent as `X-Presto-Time-Zone` header.
+- `headers`: object containing custom headers to set on every request such as `Authorization` (case-insensitive). Headers specified here take precedence over other options that set headers.
 - `parametricDatetime`: boolean, default false. Opt-in to datetime types with variable precision, for example `timestamp(6)`. When not set, datetime types are returned with a precision of 3.
 
 You can specify a [catalog](https://prestosql.io/docs/current/overview/concepts.html#catalog) and [schema](https://prestosql.io/docs/current/overview/concepts.html#schema) to avoid writing fully-qualified table names in queries:
@@ -97,10 +98,6 @@ Control delays and retries:
 - `pollInterval`: number (milliseconds) or string with unit (e.g. `1s`, `500ms`). How long to wait for server-side state changes, before sending another HTTP request. Default is 1 second.
 - `maxRetries`: number of retries if Presto responds with [HTTP 503 or other failures](#builtin-retry). Default is 10.
 - `socketTimeout`: number (milliseconds) or string with unit. When to timeout after inactivity on the socket. Default is 2 minutes.
-
-Custom request headers:
-
-- `headers`: object containing custom headers to append to every request such as `Authorization` or any `X-Presto-...` header not set using the options above
 
 <a name="createpagestream"></a>
 ### `createPageStream(sql[, options])`
@@ -126,8 +123,9 @@ Options:
 
 - `pageSize`: number, default 500
 - `highWaterMark`: number, default 0
-- `rowFormat`: string, one of `object` (default) or `array`.
+- `rowFormat`: string, one of `object` (default) or `array`
 - `deserialize`: boolean, default true
+- `headers`: custom request headers. Merged with headers that were set in the constructor, if any.
 
 The `pageSize` specifies the maximum number of rows per page. Presto may return less per page. If Presto returns more rows than `pageSize`, the surplus is buffered and the stream will not make another HTTP request to Presto until fully drained. Note that if the (remainder of) rows fit in Presto's buffers, Presto will not block (until another HTTP request is made) but instead go into the `FINISHED` state after which you have 15 minutes (by default) to fetch the remaining results. If `pageSize` is <= 0 the stream emits pages as returned by Presto, without slicing them up.
 
@@ -160,7 +158,9 @@ Besides the usual [Node.js stream events](https://nodejs.org/api/stream.html#str
 Execute a query. Takes `sql` as a string or Buffer and returns a [readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) that yields rows. Options:
 
 - `highWaterMark`: number, default 16
-- `rowFormat`: string, one of `object` (default) or `array`.
+- `rowFormat`: string, one of `object` (default) or `array`
+- `deserialize`: boolean, default true
+- `headers`: custom request headers. Merged with headers that were set in the constructor, if any.
 
 <a name="query"></a>
 ### `query(sql[, options], callback)`

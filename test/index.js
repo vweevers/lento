@@ -33,6 +33,81 @@ test('sets body and headers', function (t) {
   })
 })
 
+test('custom headers via constructor', function (t) {
+  t.plan(8)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(function (uri, requestBody, cb) { /* eslint-disable dot-notation */
+      t.is(requestBody, 'select 1')
+      t.is(this.req.headers['authorization'], 'test')
+      t.is(this.req.headers['user-agent'], 'custom')
+      t.is(this.req.headers['x-presto-source'], 'hello')
+      t.is(this.req.headers['connection'], 'keep-alive')
+      t.is(this.req.headers['accept-encoding'], 'gzip, deflate, identity')
+      t.is(this.req.headers['accept'], 'application/json')
+
+      cb(null, [200, {
+        id: 'q1',
+        columns: [{ name: 'a' }],
+        data: [[1]]
+      }])
+    })
+
+  const client = lento({
+    headers: {
+      Authorization: 'test',
+      'X-Presto-Source': 'hello',
+      // Should be case-insensitive
+      'user-agent': 'custom'
+    }
+  })
+
+  client.query('select 1', (err) => {
+    t.ifError(err, 'no query error')
+  })
+})
+
+test('custom headers via query()', function (t) {
+  t.plan(8)
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(function (uri, requestBody, cb) { /* eslint-disable dot-notation */
+      t.is(requestBody, 'select 1')
+      t.is(this.req.headers['authorization'], 'test2')
+      t.is(this.req.headers['user-agent'], 'custom')
+      t.is(this.req.headers['x-presto-source'], 'hello2')
+      t.is(this.req.headers['connection'], 'keep-alive')
+      t.is(this.req.headers['accept-encoding'], 'gzip, deflate, identity')
+      t.is(this.req.headers['accept'], 'application/json')
+
+      cb(null, [200, {
+        id: 'q1',
+        columns: [{ name: 'a' }],
+        data: [[1]]
+      }])
+    })
+
+  const client = lento({
+    headers: {
+      Authorization: 'test1',
+      'x-presto-source': 'hello1'
+    }
+  })
+
+  const headers = {
+    Authorization: 'test2',
+    // Should be case-insensitive
+    'X-Presto-Source': 'hello2',
+    'user-agent': 'custom'
+  }
+
+  client.query('select 1', { headers }, (err) => {
+    t.ifError(err, 'no query error')
+  })
+})
+
 test('Buffer query', function (t) {
   t.plan(2)
 
@@ -367,11 +442,11 @@ test('retries query after presto error and having followed a nextUri', function 
   })
 
   const headers = {
-    Accept: 'application/json',
-    'X-Presto-Source': 'lento',
-    'User-Agent': `lento ${VERSION}`,
-    Connection: 'keep-alive',
-    'Accept-Encoding': 'gzip, deflate, identity'
+    accept: 'application/json',
+    'x-presto-source': 'lento',
+    'user-agent': `lento ${VERSION}`,
+    connection: 'keep-alive',
+    'accept-encoding': 'gzip, deflate, identity'
   }
 
   stream.on('end', function () {
