@@ -964,3 +964,81 @@ test('SET SESSION', function (t) {
     })
   })
 })
+
+test('session', function (t) {
+  t.plan(3)
+
+  const client = lento()
+
+  nock('http://localhost:8080')
+    .post('/v1/statement')
+    .reply(function (uri, requestBody, cb) {
+      t.is(requestBody, 'show session')
+      cb(null, [200, require('./fixture/session.json')])
+    })
+
+  client.session((err, session) => {
+    t.ifError(err, 'no query error')
+    t.same(session, {
+      colocated_join: {
+        key: 'colocated_join',
+        value: false,
+        default: false,
+        type: 'boolean',
+        description: 'Experimental: Use a colocated join when possible'
+      },
+      hash_partition_count: {
+        key: 'hash_partition_count',
+        value: 100,
+        default: 100,
+        type: 'integer',
+        description: 'Number of partitions for distributed joins and aggregations'
+      },
+      join_distribution_type: {
+        key: 'join_distribution_type',
+        value: 'AUTOMATIC',
+        default: 'AUTOMATIC',
+        type: 'varchar',
+        description: 'Join distribution type. Possible values: [BROADCAST, PARTITIONED, AUTOMATIC]'
+      },
+      // TODO: fix NaN
+      max_drivers_per_task: {
+        key: 'max_drivers_per_task',
+        value: NaN,
+        default: NaN,
+        type: 'integer',
+        description: 'Maximum number of drivers per task'
+      },
+      query_max_execution_time: {
+        key: 'query_max_execution_time',
+        value: '100.00d',
+        default: '100.00d',
+        type: 'varchar',
+        description: 'Maximum execution time of a query'
+      },
+      query_max_scan_physical_bytes: {
+        key: 'query_max_scan_physical_bytes',
+        value: '',
+        default: '',
+        type: 'varchar',
+        description: 'Maximum scan physical bytes of a query'
+      },
+      task_concurrency: {
+        key: 'task_concurrency',
+        value: '16',
+        default: '16',
+        type: 'bigint',
+        description: 'Default number of local parallel jobs per worker'
+      },
+      hive: {
+        bucket_execution_enabled: {
+          key: 'hive.bucket_execution_enabled',
+          value: true,
+          default: true,
+          type: 'boolean',
+          description: 'Enable bucket-aware execution: only use a single worker per bucket'
+        }
+      }
+    })
+  })
+})

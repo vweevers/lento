@@ -1,0 +1,100 @@
+{
+  "id": "q1",
+  "infoUri": "http://localhost:8080/ui/query.html?q1",
+  "columns": [{
+    "name": "Name",
+    "type": "varchar(44)",
+    "typeSignature": {
+      "rawType": "varchar",
+      "arguments": [{
+        "kind": "LONG",
+        "value": 44
+      }]
+    }
+  }, {
+    "name": "Value",
+    "type": "varchar(14)",
+    "typeSignature": {
+      "rawType": "varchar",
+      "arguments": [{
+        "kind": "LONG",
+        "value": 14
+      }]
+    }
+  }, {
+    "name": "Default",
+    "type": "varchar(14)",
+    "typeSignature": {
+      "rawType": "varchar",
+      "arguments": [{
+        "kind": "LONG",
+        "value": 14
+      }]
+    }
+  }, {
+    "name": "Type",
+    "type": "varchar(7)",
+    "typeSignature": {
+      "rawType": "varchar",
+      "arguments": [{
+        "kind": "LONG",
+        "value": 7
+      }]
+    }
+  }, {
+    "name": "Description",
+    "type": "varchar(118)",
+    "typeSignature": {
+      "rawType": "varchar",
+      "arguments": [{
+        "kind": "LONG",
+        "value": 118
+      }]
+    }
+  }],
+  "data": [
+    ["colocated_join", "false", "false", "boolean", "Experimental: Use a colocated join when possible"],
+    ["hash_partition_count", "100", "100", "integer", "Number of partitions for distributed joins and aggregations"],
+    ["join_distribution_type", "AUTOMATIC", "AUTOMATIC", "varchar", "Join distribution type. Possible values: [BROADCAST, PARTITIONED, AUTOMATIC]"],
+    ["max_drivers_per_task", "", "", "integer", "Maximum number of drivers per task"],
+    ["query_max_execution_time", "100.00d", "100.00d", "varchar", "Maximum execution time of a query"],
+    ["query_max_scan_physical_bytes", "", "", "varchar", "Maximum scan physical bytes of a query"],
+    ["task_concurrency", "16", "16", "bigint", "Default number of local parallel jobs per worker"],
+    ["hive.bucket_execution_enabled", "true", "true", "boolean", "Enable bucket-aware execution: only use a single worker per bucket"]
+  ],
+  "stats": {
+    "state": "FINISHED",
+    "queued": false,
+    "scheduled": true,
+    "nodes": 1,
+    "totalSplits": 17,
+    "queuedSplits": 0,
+    "runningSplits": 0,
+    "completedSplits": 17,
+    "cpuTimeMillis": 21,
+    "wallTimeMillis": 56,
+    "queuedTimeMillis": 0,
+    "elapsedTimeMillis": 647,
+    "processedRows": 0,
+    "processedBytes": 0,
+    "peakMemoryBytes": 0,
+    "spilledBytes": 0,
+    "rootStage": {
+      "stageId": "0",
+      "state": "FINISHED",
+      "done": true,
+      "nodes": 1,
+      "totalSplits": 17,
+      "queuedSplits": 0,
+      "runningSplits": 0,
+      "completedSplits": 17,
+      "cpuTimeMillis": 21,
+      "wallTimeMillis": 56,
+      "processedRows": 73,
+      "processedBytes": 0,
+      "subStages": []
+    },
+    "progressPercentage": 100
+  },
+  "warnings": []
+}

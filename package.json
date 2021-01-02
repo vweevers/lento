@@ -21,7 +21,7 @@
     "aggregate-error": "^3.1.0",
     "backo": "^1.1.0",
     "debug": "^4.1.0",
-    "deep-set": "^1.0.1",
+    "dset": "^2.0.1",
     "http-errors": "^1.8.0",
     "ms": "^2.1.1",
     "once": "^1.4.0",
