@@ -67,6 +67,7 @@ If the destination streams close or error, the source stream is destroyed (court
 	- [Events](#events)
 - [`createRowStream(sql[, options])`](#createrowstreamsql-options)
 - [`query(sql[, options], callback)`](#querysql-options-callback)
+- [`queryAsync(sql[, options])`](#queryasyncsql-options)
 - [`setTimeout(duration[, options], callback)`](#settimeoutduration-options-callback)
 - [`resetTimeout([options, ]callback)`](#resettimeoutoptions-callback)
 - [`set(key, value[, options], callback)`](#setkey-value-options-callback)
@@ -172,8 +173,18 @@ client.query('DESCRIBE events', (err, rows) => {
   // ..
 })
 ```
+<a name="queryAsync"></a>
+### `queryAsync(sql[, options])`
 
-I'll take a PR for Promise support.
+Same as above but promise-based.
+
+```js
+try {
+  const rows = await client.queryAsync('DESCRIBE events');
+catch(error) {
+  // ..
+}
+```
 
 <a name="set-timeout"></a>
 ### `setTimeout(duration[, options], callback)`

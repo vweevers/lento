@@ -1,6 +1,6 @@
 {
   "name": "lento",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Streaming client for Presto HTTP protocol v1",
   "license": "MIT",
   "author": "Vincent Weevers",
