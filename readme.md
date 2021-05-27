@@ -179,11 +179,7 @@ client.query('DESCRIBE events', (err, rows) => {
 Same as above but promise-based.
 
 ```js
-try {
-  const rows = await client.queryAsync('DESCRIBE events');
-catch(error) {
-  // ..
-}
+const rows = await client.queryAsync('DESCRIBE events')
 ```
 
 <a name="set-timeout"></a>
