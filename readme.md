@@ -26,6 +26,7 @@
 - Set session properties
 - Set time limit (enforced by Presto)
 - Get rows as objects or arrays
+- Supports both callbacks & promises
 - Uses [Presto HTTP protocol v1](https://github.com/prestosql/presto/wiki/HTTP-Protocol)
 - Keep-alive HTTP connections
 - Supports Gzip and Deflate content encoding
@@ -63,8 +64,8 @@ If the destination streams close or error, the source stream is destroyed (court
 
 - [`lento([options])`](#lentooptions)
 - [`createPageStream(sql[, options])`](#createpagestreamsql-options)
-	- [Cancelation](#cancelation)
-	- [Events](#events)
+  - [Cancelation](#cancelation)
+  - [Events](#events)
 - [`createRowStream(sql[, options])`](#createrowstreamsql-options)
 - [`query(sql[, options], callback)`](#querysql-options-callback)
 - [`setTimeout(duration[, options], callback)`](#settimeoutduration-options-callback)
@@ -100,6 +101,7 @@ Control delays and retries:
 - `socketTimeout`: number (milliseconds) or string with unit. When to timeout after inactivity on the socket. Default is 2 minutes.
 
 <a name="createpagestream"></a>
+
 ### `createPageStream(sql[, options])`
 
 Execute a query. Takes `sql` as a string or Buffer and returns a [readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) that yields pages of rows.
@@ -127,9 +129,9 @@ Options:
 - `deserialize`: boolean, default true
 - `headers`: custom request headers. Merged with headers that were set in the constructor, if any.
 
-The `pageSize` specifies the maximum number of rows per page. Presto may return less per page. If Presto returns more rows than `pageSize`, the surplus is buffered and the stream will not make another HTTP request to Presto until fully drained. Note that if the (remainder of) rows fit in Presto's buffers, Presto will not block (until another HTTP request is made) but instead go into the `FINISHED` state after which you have 15 minutes (by default) to fetch the remaining results. If `pageSize` is <= 0 the stream emits pages as returned by Presto, without slicing them up.
+The `pageSize` specifies the maximum number of rows per page. Presto may return less per page. If Presto returns more rows than `pageSize`, the surplus is buffered and the stream will not make another HTTP request to Presto until fully drained. Note that if the (remainder of) rows fit in Presto's buffers, Presto will not block (until another HTTP request is made) but instead go into the `FINISHED` state after which you have 15 minutes (by default) to fetch the remaining results. If `pageSize` is &lt;= 0 the stream emits pages as returned by Presto, without slicing them up.
 
-The `highWaterMark` specifies how many pages to fetch preemptively. The maximum numbers of rows held in memory is approximately `(highWaterMark || 1) * pageSize`, plus any surplus from the last HTTP request. Because Presto can return thousands of rows per request, the default `highWaterMark` is 0 so that we *don't* preemptively fetch and only hold the number of rows contained in the last HTTP request.
+The `highWaterMark` specifies how many pages to fetch preemptively. The maximum numbers of rows held in memory is approximately `(highWaterMark || 1) * pageSize`, plus any surplus from the last HTTP request. Because Presto can return thousands of rows per request, the default `highWaterMark` is 0 so that we _don't_ preemptively fetch and only hold the number of rows contained in the last HTTP request.
 
 If you care more about throughput, you can opt to increase `highWaterMark`. Additionally you can increase `pageSize` if processing time is minimal or if you don't mind blocking the rest of your app while processing a page.
 
@@ -153,6 +155,7 @@ Besides the usual [Node.js stream events](https://nodejs.org/api/stream.html#str
 **Note** The `id`, `info` and `columns` events may be emitted more than once due to retries. Subsequent `stats` and `state_change` events pertain to that retried query as well.
 
 <a name="createrowstream"></a>
+
 ### `createRowStream(sql[, options])`
 
 Execute a query. Takes `sql` as a string or Buffer and returns a [readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) that yields rows. Options:
@@ -163,9 +166,10 @@ Execute a query. Takes `sql` as a string or Buffer and returns a [readable strea
 - `headers`: custom request headers. Merged with headers that were set in the constructor, if any.
 
 <a name="query"></a>
-### `query(sql[, options], callback)`
 
-Same as above but non-streaming, meant for simple queries. The `callback` function will receive an error if any and an array of rows.
+### `query(sql[, options][, callback])`
+
+Same as above but non-streaming, meant for simple queries. The `callback` function will receive an error if any and an array of rows. If no callback is provided, a promise is returned.
 
 ```js
 client.query('DESCRIBE events', (err, rows) => {
@@ -173,10 +177,15 @@ client.query('DESCRIBE events', (err, rows) => {
 })
 ```
 
-I'll take a PR for Promise support.
+With async/await:
+
+```js
+const rows = await client.query('DESCRIBE events')
+```
 
 <a name="set-timeout"></a>
-### `setTimeout(duration[, options], callback)`
+
+### `setTimeout(duration[, options][, callback])`
 
 Set `query_max_run_time` for subsequent queries. If those take longer than `duration`, Presto will return an error with code `EXCEEDED_TIME_LIMIT` (see [errors](#errors)). The `duration` can be a number (in milliseconds) or a string parsed by Presto with the format `<value><unit>` - for example `5d` or `100ms`. Options are passed to [`query()`](#query) via [`set()`](#set), as this method is a shortcut for:
 
@@ -184,15 +193,19 @@ Set `query_max_run_time` for subsequent queries. If those take longer than `dura
 client.set('query_max_run_time', duration[, options], callback)
 ```
 
-<a name="reset-timeout"></a>
-### `resetTimeout([options, ]callback)`
+If no callback is provided, a promise is returned.
 
-Reset `query_max_run_time` to Presto's default. Options are passed to [`query()`](#query) via [`reset()`](#reset).
+<a name="reset-timeout"></a>
+
+### `resetTimeout([options][, callback])`
+
+Reset `query_max_run_time` to Presto's default. Options are passed to [`query()`](#query) via [`reset()`](#reset). If no callback is provided, a promise is returned.
 
 <a name="set"></a>
-### `set(key, value[, options], callback)`
 
-Set a session property. Executes `SET SESSION ..` to prevalidate input, then sets `X-Presto-Session` header on subsequent queries. Value can be a boolean, number or string. Options are passed to [`query()`](#query).
+### `set(key, value[, options][, callback])`
+
+Set a session property. Executes `SET SESSION ..` to prevalidate input, then sets `X-Presto-Session` header on subsequent queries. Value can be a boolean, number or string. Options are passed to [`query()`](#query). If no callback is provided, a promise is returned.
 
 ```js
 client.set('redistribute_writes', false, (err) => {
@@ -203,9 +216,10 @@ client.set('redistribute_writes', false, (err) => {
 ```
 
 <a name="reset"></a>
-### `reset(key[, options], callback)`
 
-Reset a session property to its default value. Options are passed to [`query()`](#query).
+### `reset(key[, options][, callback])`
+
+Reset a session property to its default value. Options are passed to [`query()`](#query). If no callback is provided, a promise is returned.
 
 ```js
 client.reset('redistribute_writes', (err) => {
@@ -216,9 +230,12 @@ client.reset('redistribute_writes', (err) => {
 ```
 
 <a name="show-session"></a>
-### `session([options, ]callback)`
 
-Converts the result of `SHOW SESSION` into a tree, coerces boolean and integer values to JSON types. Options are passed to [`query()`](#query). Callback signature is `(err, session)`. Partial example of a `session`:
+### `session([options, ][callback])`
+
+Converts the result of `SHOW SESSION` into a tree, coerces boolean and integer values to JSON types. Options are passed to [`query()`](#query). Callback signature is `(err, session)`.  If no callback is provided, a promise is returned.
+
+Partial example of a `session`:
 
 ```json
 {
