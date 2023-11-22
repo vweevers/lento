@@ -108,6 +108,20 @@ test('custom headers via query()', function (t) {
   })
 })
 
+test('catches invalid headers', function (t) {
+  t.plan(1)
+
+  const client = lento({
+    headers: {
+      foo: undefined
+    }
+  })
+
+  client.query('select 1', (err) => {
+    t.is(err && err.code, 'ERR_HTTP_INVALID_HEADER_VALUE')
+  })
+})
+
 test('Buffer query', function (t) {
   t.plan(2)
 
